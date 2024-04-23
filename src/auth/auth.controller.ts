@@ -18,16 +18,16 @@ export class AuthController {
   constructor(private authservice: AuthService) {}
   @Post('login') // <== This is the route
   @UseGuards(LocalGuard) // <== This is the guard
-  login(@Body() authpayload: authdtopayload) {
-    const user = this.authservice.validateUser(authpayload);
+  async login(@Body() authpayload: authdtopayload) {
+    const user = await this.authservice.validateUser(authpayload.username, authpayload.password);
     if (!user) {
       throw new HttpException('Invalid credentials', 401);
     }
     return user;
   }
   @Post('signup')
-  signUp(@Body() authPayload: authdtopayload) {
-    return this.authservice.signUp(authPayload);
+  async signUp(@Body() authPayload: authdtopayload) {
+    return await this.authservice.signUp(authPayload.username, authPayload.password, authPayload.role);
   }
 
   @Get('logout')
