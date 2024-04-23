@@ -3,9 +3,9 @@ import { authdtopayload } from './dto/auth.dto';
 import { JwtService } from '@nestjs/jwt';
 
 const fakeUsers = [
-    { id: 1, username: 'user1', password: 'password1' },
-    { id: 2, username: 'user2', password: 'password2' },
-    { id: 3, username: 'user3', password: 'password3' },
+    { id: 1, username: 'user1', password: 'password1', role: 'admin' },
+    { id: 2, username: 'user2', password: 'password2', role: 'employee' },
+    { id: 3, username: 'user3', password: 'password3', role: 'employee' },
 ];
 
 @Injectable()
