@@ -16,18 +16,35 @@ import { RoleGuard } from './guard/role.guard';
 @Controller('auth')
 export class AuthController {
   constructor(private authservice: AuthService) {}
-  @Post('login') // <== This is the route
-  @UseGuards(LocalGuard) // <== This is the guard
+  @Post('login')
+  @UseGuards(LocalGuard)
   async login(@Body() authpayload: authdtopayload) {
-    const user = await this.authservice.validateUser(authpayload.username, authpayload.password);
+    const user = await this.authservice.validateUser(
+      authpayload.username,
+      authpayload.password,
+    );
     if (!user) {
       throw new HttpException('Invalid credentials', 401);
     }
-    return user;
+
+    const payload = {
+      username: user.username,
+      sub: user.userId,
+      role: user.role,
+    };
+    const token = this.authservice.jwtService.sign(payload);
+
+    await this.authservice.saveToken(token, user.role); // Save the token
+
+    return { access_token: token };
   }
   @Post('signup')
   async signUp(@Body() authPayload: authdtopayload) {
-    return await this.authservice.signUp(authPayload.username, authPayload.password, authPayload.role);
+    return await this.authservice.signUp(
+      authPayload.username,
+      authPayload.password,
+      authPayload.role,
+    );
   }
 
   @Get('logout')

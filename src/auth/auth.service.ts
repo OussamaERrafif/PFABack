@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from '../user/user.entity';
+import { Token } from 'src/user/token.entity';
 
 // const fakeUsers = [
 //   { id: 1, username: 'admin', password: 'admin', role: 'admin' },
@@ -18,19 +19,25 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    private jwtService: JwtService,
+    @InjectRepository(Token) // Inject the Token repository
+    private tokensRepository: Repository<Token>,
+    public jwtService: JwtService,
   ) {}
 
-async validateUser(username: string, password: string): Promise<any> {
+  async validateUser(username: string, password: string): Promise<any> {
     const user = await this.usersRepository.findOne({ where: { username } });
     if (user && (await bcrypt.compare(password, user.password))) {
-        const { password, ...result } = user;
-        return result;
+      const { password, ...result } = user;
+      return result;
     }
     return null;
-}
+  }
 
-  async signUp(username: string, password: string, role: string): Promise<any> {
+  async signUp(
+    username: string,
+    password: string,
+    role: string = 'employee',
+  ): Promise<any> {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = this.usersRepository.create({
       username,
@@ -40,29 +47,34 @@ async validateUser(username: string, password: string): Promise<any> {
     await this.usersRepository.save(user);
     return user;
   }
+  async saveToken(token: string, role: string): Promise<Token> {
+    const newToken = this.tokensRepository.create({ token, role });
+    await this.tokensRepository.save(newToken);
+    return newToken;
+  }
 
   logout() {
     // Logique de déconnexion ici
     // Pour l'exemple, nous retournons simplement un message
     return 'Logged out successfully';
   }
-async adminLogin({ username, password }: authdtopayload) {
+  async adminLogin({ username, password }: authdtopayload) {
     const user = await this.usersRepository.findOne({ where: { username } });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-        throw new UnauthorizedException('Invalid username or password');
+      throw new UnauthorizedException('Invalid username or password');
     }
 
     if (user.role !== 'admin') {
-        throw new UnauthorizedException('Unauthorized access');
+      throw new UnauthorizedException('Unauthorized access');
     }
 
     const payload = {
-        username: user.username,
-        sub: user.password,
-        role: user.role,
+      username: user.username,
+      sub: user.password,
+      role: user.role,
     };
 
     return this.jwtService.sign(payload);
-}
+  }
 }

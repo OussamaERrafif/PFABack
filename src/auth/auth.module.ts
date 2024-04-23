@@ -8,6 +8,8 @@ import { JwtStrategy } from './strategies/jwt.strategies';
 import { UserModule } from 'src/user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/user/user.entity';
+import { Token } from 'src/user/token.entity';
+import { TokenModule } from 'src/user/token.module';
 
 @Module({
   imports: [
@@ -15,8 +17,8 @@ import { User } from 'src/user/user.entity';
     JwtModule.register({
       secret: 'secret',
       signOptions: { expiresIn: '1h' }
-    }),TypeOrmModule.forFeature([User]), 
-    UserModule,
+    }),TypeOrmModule.forFeature([User,Token]), 
+    UserModule,TokenModule
   ],
   controllers: [AuthController],
   providers: [AuthService,LocalStrategy,JwtStrategy]
