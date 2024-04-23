@@ -24,6 +24,15 @@ export class AuthController {
     }
     return user;
   }
+  @Post('signup')
+    signUp(@Body() authPayload: authdtopayload) {
+        return this.authservice.signUp(authPayload);
+    }
+
+    @Get('logout')
+    logout() {
+        return this.authservice.logout();
+    }
   @Get('status')
   @UseGuards(JwtAuthGuard)
   status(@Req() req: Express.Request) {
