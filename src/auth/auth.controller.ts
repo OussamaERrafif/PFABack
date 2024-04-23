@@ -11,6 +11,7 @@ import { authdtopayload } from './dto/auth.dto';
 import { AuthService } from './auth.service';
 import { LocalGuard } from './guard/local.guard';
 import { JwtAuthGuard } from './guard/jwt.guard';
+import { RoleGuard } from './guard/role.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -25,14 +26,14 @@ export class AuthController {
     return user;
   }
   @Post('signup')
-    signUp(@Body() authPayload: authdtopayload) {
-        return this.authservice.signUp(authPayload);
-    }
+  signUp(@Body() authPayload: authdtopayload) {
+    return this.authservice.signUp(authPayload);
+  }
 
-    @Get('logout')
-    logout() {
-        return this.authservice.logout();
-    }
+  @Get('logout')
+  logout() {
+    return this.authservice.logout();
+  }
   @Get('status')
   @UseGuards(JwtAuthGuard)
   status(@Req() req: Express.Request) {
@@ -40,6 +41,8 @@ export class AuthController {
     console.log(req.user);
     return req.user;
   }
-
-
+  @Post('admin')
+  async admin(@Body() user: any) {
+    return this.authservice.adminLogin(user);
+  }
 }
