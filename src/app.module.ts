@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DbConnectionService } from './app.DbConnectionService';
 import { ProductModule } from './products/product.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   // Declaring the AppModule class
@@ -40,6 +41,7 @@ import { ProductModule } from './products/product.module';
       // Whether to drop the schema and recreate it on every application start (set to false for production)
       dropSchema: false,
     }),
+    AdminModule,
   ],
   // Declaring controllers used in this module
   controllers: [AppController],

@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from '../user/user.entity';
 import { Token } from 'src/user/token.entity';
 import { Employee } from 'src/user/employee/employee.entity';
+import { Admin } from 'src/admin/admin.entity';
 
 // const fakeUsers = [
 //   { id: 1, username: 'admin', password: 'admin', role: 'admin' },
@@ -24,6 +25,8 @@ export class AuthService {
     private tokensRepository: Repository<Token>,
     @InjectRepository(Employee)
     private employeeRepository: Repository<Employee>,
+    @InjectRepository(Admin)
+    private adminRepository: Repository<Admin>,
     public jwtService: JwtService,
   ) {}
 

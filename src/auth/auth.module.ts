@@ -9,10 +9,11 @@ import { UserModule } from 'src/user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/user/user.entity';
 import { Employee } from 'src/user/employee/employee.entity';
-import { Admin } from 'typeorm';
 import { EmployeeModule } from 'src/user/employee/employee.module';
 import { Token } from 'src/user/token.entity';
 import { TokenModule } from 'src/user/token.module';
+import { AdminModule } from 'src/admin/admin.module';
+import { Admin } from 'src/admin/admin.entity';
 
 @Module({
   imports: [
@@ -20,8 +21,8 @@ import { TokenModule } from 'src/user/token.module';
     JwtModule.register({
       secret: 'secret',
       signOptions: { expiresIn: '1h' }
-    }),TypeOrmModule.forFeature([User,Employee,Token]), 
-    UserModule,EmployeeModule,TokenModule
+    }),TypeOrmModule.forFeature([User,Employee,Token,Admin]), 
+    UserModule,EmployeeModule,TokenModule,AdminModule
   ],
   controllers: [AuthController],
   providers: [AuthService,LocalStrategy,JwtStrategy]
