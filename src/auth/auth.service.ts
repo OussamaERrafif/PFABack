@@ -1,14 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { authdtopayload } from './dto/auth.dto';
 import { JwtService } from '@nestjs/jwt';
-import { UnauthorizedException } from '@nestjs/common/exceptions/unauthorized.exception';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from '../user/user.entity';
 import { Token } from 'src/user/token.entity';
 import { Employee } from 'src/user/employee/employee.entity';
-import { Admin } from 'src/admin/admin.entity';
 
 // const fakeUsers = [
 //   { id: 1, username: 'admin', password: 'admin', role: 'admin' },
@@ -25,8 +22,6 @@ export class AuthService {
     private tokensRepository: Repository<Token>,
     @InjectRepository(Employee)
     private employeeRepository: Repository<Employee>,
-    @InjectRepository(Admin)
-    private adminRepository: Repository<Admin>,
     public jwtService: JwtService,
   ) {}
 
@@ -72,23 +67,5 @@ export class AuthService {
     // Pour l'exemple, nous retournons simplement un message
     return 'Logged out successfully';
   }
-  async adminLogin({ username, password }: authdtopayload) {
-    const user = await this.usersRepository.findOne({ where: { username } });
-
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException('Invalid username or password');
-    }
-
-    if (user.role !== 'admin') {
-      throw new UnauthorizedException('Unauthorized access');
-    }
-
-    const payload = {
-      username: user.username,
-      sub: user.password,
-      role: user.role,
-    };
-
-    return this.jwtService.sign(payload);
-  }
+  
 }

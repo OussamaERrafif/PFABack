@@ -58,8 +58,4 @@ export class AuthController {
     console.log(req.user);
     return req.user;
   }
-  @Post('admin')
-  async admin(@Body() user: any) {
-    return this.authservice.adminLogin(user);
-  }
 }
