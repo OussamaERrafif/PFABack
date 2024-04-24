@@ -36,7 +36,7 @@ import { ProductModule } from './products/product.module';
       // Entities to be used for database operations (both .ts and .js files)
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       // Whether to auto-create the database schema (set to false for production)
-      synchronize: true,
+      synchronize: false,
       // Whether to drop the schema and recreate it on every application start (set to false for production)
       dropSchema: false,
     }),

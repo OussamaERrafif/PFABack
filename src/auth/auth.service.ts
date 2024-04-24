@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from '../user/user.entity';
 import { Token } from 'src/user/token.entity';
+import { Employee } from 'src/user/employee/employee.entity';
 
 // const fakeUsers = [
 //   { id: 1, username: 'admin', password: 'admin', role: 'admin' },
@@ -21,6 +22,8 @@ export class AuthService {
     private usersRepository: Repository<User>,
     @InjectRepository(Token) // Inject the Token repository
     private tokensRepository: Repository<Token>,
+    @InjectRepository(Employee)
+    private employeeRepository: Repository<Employee>,
     public jwtService: JwtService,
   ) {}
 
@@ -39,12 +42,20 @@ export class AuthService {
     role: string = 'employee',
   ): Promise<any> {
     const hashedPassword = await bcrypt.hash(password, 10);
+    const employee = this.employeeRepository.create({
+      firstname:'',
+      lastnaem:'',
+      age:0,
+      salary:0,
+      password: hashedPassword,
+    });
     const user = this.usersRepository.create({
       username,
       password: hashedPassword,
       role,
     });
-    await this.usersRepository.save(user);
+    await this.employeeRepository.save(user);
+    await this.usersRepository.save(employee);
     return user;
   }
   async saveToken(token: string, role: string): Promise<Token> {
