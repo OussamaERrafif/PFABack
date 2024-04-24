@@ -7,12 +7,15 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DbConnectionService } from './app.DbConnectionService';
+import { ProductModule } from './products/product.module';
 
 @Module({
   // Declaring the AppModule class
   imports: [
-        TokenModule, 
+    TokenModule,
     // Importing the UserModule to use its functionality
+    ProductModule,
+    // Importing the ProductModule to use its functionality
     UserModule,
     // Importing the AuthModule to use its functionality
     AuthModule,
