@@ -9,3 +9,12 @@ export class CreateProductDto {
   readonly quantity: number;
   readonly price: number;
 }
+
+//write a json exeample
+// {
+//   "name": "product1",
+//   "category": "Electronics",
+//   "brand": "Samsung",
+//   "quantity": 10,
+//   "price": 1000
+// }

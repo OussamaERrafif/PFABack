@@ -9,6 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DbConnectionService } from './app.DbConnectionService';
 import { ProductModule } from './products/product.module';
 import { AdminModule } from './admin/admin.module';
+import { CorsConfig } from './cors.middleware';
 
 @Module({
   // Declaring the AppModule class

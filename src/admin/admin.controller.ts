@@ -37,7 +37,6 @@ export class AdminController {
   @Post('login')
   @UseGuards(AdminLocalGuard)
   async login(@Body() adminpayload: Admindtopayload) {
-    console.log('Inside AdminController login method');
     const admin = await this.adminService.login(adminpayload.name, adminpayload.password);
 
     if (!admin) {

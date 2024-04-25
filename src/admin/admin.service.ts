@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -80,18 +81,43 @@ export class AdminService {
   }
 
   async signUp(adminData: Admin): Promise<Admin> {
+    const existingAdmin = await this.adminRepository.findOne({
+      where: { name: adminData.name },
+    });
+    if (existingAdmin) {
+      throw new ConflictException('Admin with this username already exists');
+    }
+
+    // Regex pattern to validate username (name) format
+    const nameRegex = /^[a-zA-Z0-9_]{3,15}$/;
+    if (!nameRegex.test(adminData.name)) {
+      throw new BadRequestException('Invalid username format');
+    }
+
+    // Regex pattern to validate password format
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+    if (!passwordRegex.test(adminData.password)) {
+      throw new BadRequestException('Invalid password format');
+    }
+
     const hashedPassword = await bcrypt.hash(adminData.password, 10);
 
-    const newAdmin = this.adminRepository.create({
+    const admin = this.adminRepository.create({
       ...adminData,
       password: hashedPassword,
     });
 
-    return this.adminRepository.save(newAdmin);
+    return await this.adminRepository.save(admin);
   }
 
   
   async login(name: string, password: string): Promise<any> {
+    // Regex pattern to validate username (name) format
+    const nameRegex = /^[a-zA-Z0-9_]{3,15}$/;
+    if (!nameRegex.test(name)) {
+      throw new BadRequestException('Invalid username format');
+    }
+
     const admin = await this.adminRepository.findOne({ where: { name } });
     if (admin && (await bcrypt.compare(password, admin.password))) {
       const { password, ...result } = admin;

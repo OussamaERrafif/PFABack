@@ -10,7 +10,7 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
-  @Get('check-connection')
+  @Get('DB')
   async checkConnection(): Promise<string> {
     const isConnected = await this.dbConnectionService.isConnected();
     return isConnected ? 'Connected to the database' : 'Not connected to the database';
