@@ -10,20 +10,20 @@ import { AdminLocalGuard } from './Guard/adminlocal.guard';
 export class AdminController {
   constructor(private readonly adminService: AdminService,private authservice: AuthService) {}
 
-  @Get()
-  getAll(): Promise<Admin[]> {
-    return this.adminService.findAll();
-  }
+  // @Get()
+  // getAll(): Promise<Admin[]> {
+  //   return this.adminService.findAll();
+  // }
 
-  @Get(':id')
-  getOne(@Param('id') id: string): Promise<Admin> {
-    return this.adminService.findOne(id);
-  }
+  // @Get(':id')
+  // getOne(@Param('id') id: string): Promise<Admin> {
+  //   return this.adminService.findOne(id);
+  // }
 
-  @Post()
-  create(@Body() admin: Admin): Promise<Admin> {
-    return this.adminService.create(admin);
-  }
+  // @Post()
+  // create(@Body() admin: Admin): Promise<Admin> {
+  //   return this.adminService.create(admin);
+  // }
 
   @Put(':id')
   update(@Param('id') id: string, @Body() admin: Admin): Promise<Admin> {
@@ -35,6 +35,7 @@ export class AdminController {
     return this.adminService.remove(id);
   }
   @Post('login')
+  
   @UseGuards(AdminLocalGuard)
   async login(@Body() adminpayload: Admindtopayload) {
     const admin = await this.adminService.login(adminpayload.name, adminpayload.password);

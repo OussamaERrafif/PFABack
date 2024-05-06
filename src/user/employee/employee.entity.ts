@@ -6,17 +6,17 @@ export class Employee {
     id: number;
 
     @Column()
-    firstname: string;
+    username: string;
 
     @Column()
-    lastnaem: string;
+    fullname: string;
 
     @Column()
-    age: number;
-
-    @Column()
-    salary: number;
+    email: string;
 
     @Column()
     password: string;
+
+    @Column()
+    role: string='employee';
 }

@@ -1,17 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from '../user/user.entity';
 import { Token } from 'src/user/token.entity';
 import { Employee } from 'src/user/employee/employee.entity';
 
-// const fakeUsers = [
-//   { id: 1, username: 'admin', password: 'admin', role: 'admin' },
-//   { id: 2, username: 'user', password: 'password', role: 'employee' },
-//   { id: 3, username: 'user3', password: 'password3', role: 'employee' },
-// ];
 
 @Injectable()
 export class AuthService {
@@ -36,24 +31,25 @@ export class AuthService {
 
   async signUp(
     username: string,
+    fullName: string,
+    email: string,
     password: string,
     role: string = 'employee',
   ): Promise<any> {
     const hashedPassword = await bcrypt.hash(password, 10);
     const employee = this.employeeRepository.create({
-      firstname:'',
-      lastnaem:'',
-      age:0,
-      salary:0,
+      username: username,
+      fullname: fullName,
+      email: email,
       password: hashedPassword,
     });
     const user = this.usersRepository.create({
-      username,
+      username: username,
       password: hashedPassword,
       role,
     });
-    await this.employeeRepository.save(user);
-    await this.usersRepository.save(employee);
+    await this.employeeRepository.save(employee);
+    await this.usersRepository.save(user);
     return user;
   }
   async saveToken(token: string, role: string): Promise<Token> {
@@ -67,5 +63,4 @@ export class AuthService {
     // Pour l'exemple, nous retournons simplement un message
     return 'Logged out successfully';
   }
-  
 }

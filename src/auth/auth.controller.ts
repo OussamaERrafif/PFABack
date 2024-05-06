@@ -11,7 +11,7 @@ import { authdtopayload } from './dto/auth.dto';
 import { AuthService } from './auth.service';
 import { LocalGuard } from './guard/local.guard';
 import { JwtAuthGuard } from './guard/jwt.guard';
-import { RoleGuard } from './guard/role.guard';
+import { EmployeeDto } from './dto/employee.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -34,16 +34,17 @@ export class AuthController {
     };
     const token = this.authservice.jwtService.sign(payload);
 
-    await this.authservice.saveToken(token, user.role); // Save the token
+    await this.authservice.saveToken(token, user.role); 
 
     return { access_token: token };
   }
   @Post('signup')
-  async signUp(@Body() authPayload: authdtopayload) {
+  async signUp(@Body() employeeDto: EmployeeDto) {
     return await this.authservice.signUp(
-      authPayload.username,
-      authPayload.password,
-      authPayload.role,
+      employeeDto.fullname,
+      employeeDto.username,
+      employeeDto.email,
+      employeeDto.password,
     );
   }
 
