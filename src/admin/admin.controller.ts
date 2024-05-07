@@ -38,14 +38,14 @@ export class AdminController {
   
   @UseGuards(AdminLocalGuard)
   async login(@Body() adminpayload: Admindtopayload) {
-    const admin = await this.adminService.login(adminpayload.name, adminpayload.password);
+    const admin = await this.adminService.login(adminpayload.username, adminpayload.password);
 
     if (!admin) {
       throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     }
 
     const payload = {
-      username: admin.name,
+      username: admin.username,
       password: admin.password,
       email: admin.email,
     };

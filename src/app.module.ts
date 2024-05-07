@@ -1,3 +1,6 @@
+import { AdresseModule } from './Adresses/adresse.module';
+import { AdresseService } from './Adresses/adresse.service';
+import { AdresseController } from './Adresses/adresse.controller';
 import { TokenModule } from './user/token.module';
 // Importing necessary modules and components from NestJS
 import { UserModule } from './user/user.module';
@@ -10,15 +13,19 @@ import { DbConnectionService } from './app.DbConnectionService';
 import { ProductModule } from './products/product.module';
 import { AdminModule } from './admin/admin.module';
 import { CorsConfig } from './cors.middleware';
+import { Address } from './Adresses/Entity/adress.entity';
 
 @Module({
   // Declaring the AppModule class
   imports: [
+    
     TokenModule,
     // Importing the UserModule to use its functionality
     ProductModule,
     // Importing the ProductModule to use its functionality
     UserModule,
+    // Importing the AdresseModule to use its functionality
+    AdresseModule,
     // Importing the AuthModule to use its functionality
     AuthModule,
     // Setting up TypeORM for database connection

@@ -1,7 +1,9 @@
 export class Admindtopayload {
   id: number;
 
-  name: string;
+  username: string;
+
+  fullname: string;
 
   email: string;
 

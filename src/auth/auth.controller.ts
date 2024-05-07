@@ -16,25 +16,26 @@ import { EmployeeDto } from './dto/employee.dto';
 @Controller('auth')
 export class AuthController {
   constructor(private authservice: AuthService) {}
+  stats :any;
   @Post('login')
-  @UseGuards(LocalGuard)
+  // @UseGuards(LocalGuard)
   async login(@Body() authpayload: authdtopayload) {
-    const user = await this.authservice.validateUser(
+    const employee = await this.authservice.validateUser(
       authpayload.username,
       authpayload.password,
     );
-    if (!user) {
+    if (!employee) {
       throw new HttpException('Invalid credentials', 401);
     }
 
     const payload = {
-      username: user.username,
-      sub: user.userId,
-      role: user.role,
+      username: employee.username,
+      sub: employee.userId,
+      role: employee.role,
     };
     const token = this.authservice.jwtService.sign(payload);
 
-    await this.authservice.saveToken(token, user.role); 
+    await this.authservice.saveToken(token, employee.role); 
 
     return { access_token: token };
   }
@@ -54,9 +55,10 @@ export class AuthController {
   }
   @Get('status')
   @UseGuards(JwtAuthGuard)
-  status(@Req() req: Express.Request) {
+  status(@Req() req: Express.Request & { user: { username: string } }) {
     console.log('Inside AuthController status method');
     console.log(req.user);
-    return req.user;
+    this.stats = this.authservice.getUserInfo(req.user.username);
+    return this.stats;
   }
 }

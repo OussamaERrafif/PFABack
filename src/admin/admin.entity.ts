@@ -5,8 +5,11 @@ export class Admin {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @Column({ unique: true })
+    username: string;
+
     @Column()
-    name: string;
+    fullname: string;
 
     @Column()
     email: string;

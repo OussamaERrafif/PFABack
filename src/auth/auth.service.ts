@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from '../user/user.entity';
 import { Token } from 'src/user/token.entity';
 import { Employee } from 'src/user/employee/employee.entity';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 
 @Injectable()
@@ -21,9 +22,9 @@ export class AuthService {
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
-    const user = await this.usersRepository.findOne({ where: { username } });
-    if (user && (await bcrypt.compare(password, user.password))) {
-      const { password, ...result } = user;
+    const employee = await this.employeeRepository.findOne({ where: { username } });
+    if (employee && (await bcrypt.compare(password, employee.password))) {
+      const { password, ...result } = employee;
       return result;
     }
     return null;
@@ -36,31 +37,51 @@ export class AuthService {
     password: string,
     role: string = 'employee',
   ): Promise<any> {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const employee = this.employeeRepository.create({
-      username: username,
-      fullname: fullName,
-      email: email,
-      password: hashedPassword,
-    });
-    const user = this.usersRepository.create({
-      username: username,
-      password: hashedPassword,
-      role,
-    });
-    await this.employeeRepository.save(employee);
-    await this.usersRepository.save(user);
-    return user;
+    try {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const existingEmployee = await this.usersRepository.findOne({ where: { username } });
+      if (existingEmployee) {
+        throw new HttpException('Employee with this username already exists', HttpStatus.CONFLICT);
+      }
+
+      const employee = this.employeeRepository.create({
+        fullname: username,
+        username: fullName,
+        email: email,
+        password: hashedPassword,
+      });
+      const user = this.usersRepository.create({
+        username: fullName,
+        password: hashedPassword,
+        role,
+      });
+      await this.employeeRepository.save(employee);
+      await this.usersRepository.save(user);
+      return user;
+    } catch (error) {
+      throw error;
+    }
   }
+  
   async saveToken(token: string, role: string): Promise<Token> {
     const newToken = this.tokensRepository.create({ token, role });
     await this.tokensRepository.save(newToken);
     return newToken;
   }
+  
 
   logout() {
     // Logique de déconnexion ici
     // Pour l'exemple, nous retournons simplement un message
     return 'Logged out successfully';
   }
+
+  async getUserInfo(username: string): Promise<any> {
+  const employee = await this.employeeRepository.findOne({ where: { username } });
+  if (!employee) {
+    throw new HttpException('Employee not found', HttpStatus.NOT_FOUND);
+  }
+  const { password, ...result } = employee;
+  return result;
+}
 }
