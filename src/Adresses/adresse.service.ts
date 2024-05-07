@@ -37,4 +37,17 @@ export class AdresseService {
         console.log(address)
         return address;
     }
+
+    async update(req: Express.Request, adressepayload: AddressDTO) {
+        const address = await this.addressRepository.findOne({
+            where: { username: (req.user as User).username },
+        });
+
+        address.street = adressepayload.street;
+        address.city = adressepayload.city;
+        address.state = adressepayload.state;
+        address.postalCode = adressepayload.postalCode;
+
+        await this.addressRepository.save(address);
+    }
 }

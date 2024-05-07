@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { Admin } from './admin.entity';
 import { LocalGuard } from 'src/auth/guard/local.guard';
@@ -8,7 +19,10 @@ import { AdminLocalGuard } from './Guard/adminlocal.guard';
 
 @Controller('admin')
 export class AdminController {
-  constructor(private readonly adminService: AdminService,private authservice: AuthService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private authservice: AuthService,
+  ) {}
 
   // @Get()
   // getAll(): Promise<Admin[]> {
@@ -20,10 +34,10 @@ export class AdminController {
   //   return this.adminService.findOne(id);
   // }
 
-  // @Post()
-  // create(@Body() admin: Admin): Promise<Admin> {
-  //   return this.adminService.create(admin);
-  // }
+  @Post()
+  create(@Body() admin: Admin): Promise<Admin> {
+    return this.adminService.create(admin);
+  }
 
   @Put(':id')
   update(@Param('id') id: string, @Body() admin: Admin): Promise<Admin> {
@@ -35,10 +49,12 @@ export class AdminController {
     return this.adminService.remove(id);
   }
   @Post('login')
-  
   @UseGuards(AdminLocalGuard)
   async login(@Body() adminpayload: Admindtopayload) {
-    const admin = await this.adminService.login(adminpayload.username, adminpayload.password);
+    const admin = await this.adminService.login(
+      adminpayload.username,
+      adminpayload.password,
+    );
 
     if (!admin) {
       throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
@@ -54,7 +70,7 @@ export class AdminController {
     // Save the token
     await this.adminService.saveToken(token, 'admin');
 
-    return { access_token: token };
+    return { access_token: token , role: 'admin'};
   }
 
   @Post('signup')

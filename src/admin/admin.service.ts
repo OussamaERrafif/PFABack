@@ -39,29 +39,29 @@ export class AdminService {
     return admin;
   }
 
-  // async create(adminData: Partial<Admin>): Promise<Admin> {
-  //   const existingAdmin = await this.adminRepository.findOne({
-  //     where: { username: adminData.username },
-  //   });
-  //   if (existingAdmin) {
-  //     throw new ConflictException('Admin with this email already exists');
-  //   }
+  async create(adminData: Partial<Admin>): Promise<Admin> {
+    const existingAdmin = await this.adminRepository.findOne({
+      where: { username: adminData.username },
+    });
+    if (existingAdmin) {
+      throw new ConflictException('Admin with this username already exists');
+    }
 
-  //   const hashedPassword = await bcrypt.hash(adminData.password, 10);
+    const hashedPassword = await bcrypt.hash(adminData.password, 10);
 
-  //   const admin = this.adminRepository.create({
-  //     ...adminData,
-  //     password: hashedPassword,
-  //   });
-  //   const user = this.userRepository.create({
-  //     username: adminData.username,
-  //     password: hashedPassword,
-  //     role : 'admin',
-  //   });
-  //   await this.userRepository.save(user);
-  //   await this.adminRepository.save(admin);
-  //   return admin;
-  // }
+    const admin = this.adminRepository.create({
+      ...adminData,
+      password: hashedPassword,
+    });
+    const user = this.userRepository.create({
+      username: adminData.username,
+      password: hashedPassword,
+      role : 'admin',
+    });
+    await this.userRepository.save(user);
+    await this.adminRepository.save(admin);
+    return admin;
+  }
 
   async update(id: string, adminData: Partial<Admin>): Promise<Admin> {
     const admin = await this.adminRepository.findOne({

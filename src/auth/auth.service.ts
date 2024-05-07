@@ -8,7 +8,6 @@ import { Token } from 'src/user/token.entity';
 import { Employee } from 'src/user/employee/employee.entity';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -22,9 +21,11 @@ export class AuthService {
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
-    const employee = await this.employeeRepository.findOne({ where: { username } });
-    if (employee && (await bcrypt.compare(password, employee.password))) {
-      const { password, ...result } = employee;
+    const user = await this.usersRepository.findOne({
+      where: { username },
+    });
+    if (user && (await bcrypt.compare(password, user.password))) {
+      const { password, ...result } = user;
       return result;
     }
     return null;
@@ -39,9 +40,14 @@ export class AuthService {
   ): Promise<any> {
     try {
       const hashedPassword = await bcrypt.hash(password, 10);
-      const existingEmployee = await this.usersRepository.findOne({ where: { username } });
+      const existingEmployee = await this.usersRepository.findOne({
+        where: { username },
+      });
       if (existingEmployee) {
-        throw new HttpException('Employee with this username already exists', HttpStatus.CONFLICT);
+        throw new HttpException(
+          'Employee with this username already exists',
+          HttpStatus.CONFLICT,
+        );
       }
 
       const employee = this.employeeRepository.create({
@@ -62,13 +68,12 @@ export class AuthService {
       throw error;
     }
   }
-  
+
   async saveToken(token: string, role: string): Promise<Token> {
     const newToken = this.tokensRepository.create({ token, role });
     await this.tokensRepository.save(newToken);
     return newToken;
   }
-  
 
   logout() {
     // Logique de déconnexion ici
@@ -77,11 +82,30 @@ export class AuthService {
   }
 
   async getUserInfo(username: string): Promise<any> {
-  const employee = await this.employeeRepository.findOne({ where: { username } });
-  if (!employee) {
-    throw new HttpException('Employee not found', HttpStatus.NOT_FOUND);
+    const employee = await this.employeeRepository.findOne({
+      where: { username },
+    });
+    if (!employee) {
+      throw new HttpException('Employee not found', HttpStatus.NOT_FOUND);
+    }
+    const { password, ...result } = employee;
+    return result;
   }
-  const { password, ...result } = employee;
-  return result;
-}
+
+  async updateUserInfo(
+    username: string,
+    fullName: string,
+    email: string,
+  ): Promise<any> {
+    const employee = await this.employeeRepository.findOne({
+      where: { username },
+    });
+    if (!employee) {
+      throw new HttpException('Employee not found', HttpStatus.NOT_FOUND);
+    }
+    employee.fullname = fullName;
+    employee.email = email;
+    await this.employeeRepository.save(employee);
+    return employee;
+  }
 }

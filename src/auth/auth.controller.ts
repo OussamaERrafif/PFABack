@@ -20,24 +20,24 @@ export class AuthController {
   @Post('login')
   // @UseGuards(LocalGuard)
   async login(@Body() authpayload: authdtopayload) {
-    const employee = await this.authservice.validateUser(
+    const user = await this.authservice.validateUser(
       authpayload.username,
       authpayload.password,
     );
-    if (!employee) {
+    if (!user) {
       throw new HttpException('Invalid credentials', 401);
     }
 
     const payload = {
-      username: employee.username,
-      sub: employee.userId,
-      role: employee.role,
+      username: user.username,
+      sub: user.userId,
+      role: user.role,
     };
     const token = this.authservice.jwtService.sign(payload);
 
-    await this.authservice.saveToken(token, employee.role); 
+    await this.authservice.saveToken(token, user.role); 
 
-    return { access_token: token };
+    return { access_token: token , role: user.role};
   }
   @Post('signup')
   async signUp(@Body() employeeDto: EmployeeDto) {
@@ -60,5 +60,11 @@ export class AuthController {
     console.log(req.user);
     this.stats = this.authservice.getUserInfo(req.user.username);
     return this.stats;
+  }
+
+  @Post('update')
+  @UseGuards(JwtAuthGuard)
+  async update(@Req() req: Express.Request & { user: { username: string } }, @Body() employeeDto: EmployeeDto) {
+    return await this.authservice.updateUserInfo(req.user.username, employeeDto.fullname, employeeDto.email);
   }
 }

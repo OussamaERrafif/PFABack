@@ -21,4 +21,11 @@ export class AdresseController {
     this.useraddress = this.adressservice.get(req);
     return this.useraddress;
   }
+
+  @Post('Update')
+  @UseGuards(JwtAuthGuard)
+  async Update(@Req() req: Express.Request, @Body() adressepayload: AddressDTO) {
+    await this.adressservice.update(req, adressepayload);
+    return 'Address updated';
+  }
 }
