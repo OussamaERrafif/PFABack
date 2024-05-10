@@ -8,10 +8,11 @@ import { User } from 'src/user/user.entity';
 import { Token } from 'src/user/token.entity';
 import { Employee } from 'src/user/employee/employee.entity';
 import { JwtModule } from '@nestjs/jwt';
+import { Address } from 'src/Adresses/Entity/adress.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Admin, User, Token, Employee]),
+    TypeOrmModule.forFeature([Admin, User, Token, Employee,Address]),
     JwtModule.register({
       secret: 'secret',
       signOptions: { expiresIn: '1h' },

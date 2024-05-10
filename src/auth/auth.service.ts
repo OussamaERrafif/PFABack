@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, In, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from '../user/user.entity';
 import { Token } from 'src/user/token.entity';
 import { Employee } from 'src/user/employee/employee.entity';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { Admin } from 'src/admin/admin.entity';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +19,8 @@ export class AuthService {
     private tokensRepository: Repository<Token>,
     @InjectRepository(Employee)
     private employeeRepository: Repository<Employee>,
+    @InjectRepository(Admin)
+    private adminsRepository: Repository<Admin>,
     public jwtService: JwtService,
   ) {}
 
@@ -29,6 +33,30 @@ export class AuthService {
       return result;
     }
     return null;
+  }
+
+  async createUserInfo(
+    username: string,
+    fullName: string,
+    email: string,
+    role: string,
+  ): Promise<any> {
+    const hashedPassword = await bcrypt.hash(username, 10);
+    const employee = this.employeeRepository.create({
+      username: username,
+      fullname: fullName,
+      email: email,
+      role: role,
+      password: hashedPassword,
+    });
+    const user = this.usersRepository.create({
+      username: fullName,
+      password: hashedPassword,
+      role,
+    });
+    await this.employeeRepository.save(employee);
+    await this.usersRepository.save(user);
+    return employee;
   }
 
   async signUp(
@@ -107,5 +135,77 @@ export class AuthService {
     employee.email = email;
     await this.employeeRepository.save(employee);
     return employee;
+  }
+
+  async generateResetToken(email: string): Promise<string> {
+    let user =
+      (await this.adminsRepository.findOne({ where: { email } })) ||
+      (await this.employeeRepository.findOne({ where: { email } }));
+
+    if (!user) {
+      throw new HttpException(
+        'No account found with that email',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const payload = { email: user.email, sub: user.id };
+    const token = this.jwtService.sign(payload);
+
+    await this.sendResetEmail(email, token);
+
+    return token;
+  }
+
+  private async sendResetEmail(email: string, token: string): Promise<void> {
+    const sgMail = require('@sendgrid/mail');
+    sgMail.setApiKey(
+      `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    `,
+    ); // Replace with your actual API key
+
+    const mailOptions = {
+      from: 'syntaxsquad02@gmail.com', // Sender address
+      to: email, // List of receivers
+      subject: 'Password Reset', // Subject line
+      text: 'You requested a password reset. Follow this link to reset your password:', // Plain text body
+      html: `<b>You requested a password reset.</b><br><a href="http://localhost:5173/ResetPassword?token=${token}">Reset Password</a>`, // HTML body content
+    };
+
+    sgMail
+      .send(mailOptions)
+      .then(() => {
+        console.log('Email sent');
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    let decoded;
+    try {
+      decoded = this.jwtService.verify(token);
+    } catch (error) {
+      throw new HttpException(
+        'Invalid or expired reset token',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    const userCondition = { id: decoded.sub };
+    let user =
+      (await this.adminsRepository.findOne({ where: userCondition })) ||
+      (await this.employeeRepository.findOne({ where: userCondition }));
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    user.password = newPassword; // Ensure password hashing is handled
+    if (user instanceof Admin) {
+      await this.adminsRepository.save(user);
+    } else {
+      await this.employeeRepository.save(user);
+    }
   }
 }

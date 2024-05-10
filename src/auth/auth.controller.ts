@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpException,
+  HttpStatus,
   Post,
   Req,
   UseGuards,
@@ -49,6 +50,7 @@ export class AuthController {
     );
   }
 
+
   @Get('logout')
   logout() {
     return this.authservice.logout();
@@ -66,5 +68,24 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async update(@Req() req: Express.Request & { user: { username: string } }, @Body() employeeDto: EmployeeDto) {
     return await this.authservice.updateUserInfo(req.user.username, employeeDto.fullname, employeeDto.email);
+  }
+  @Post('forgot-password')
+  async forgotPassword(@Body('email') email: string): Promise<any> {
+    try {
+      await this.authservice.generateResetToken(email);
+      return { message: 'If an account with that email exists, a reset email has been sent.' };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: { token: string; newPassword: string }): Promise<any> {
+    try {
+      await this.authservice.resetPassword(body.token, body.newPassword);
+      return { message: 'Password has been successfully reset.' };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 }
