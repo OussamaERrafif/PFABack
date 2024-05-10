@@ -160,7 +160,7 @@ export class AuthService {
   private async sendResetEmail(email: string, token: string): Promise<void> {
     const sgMail = require('@sendgrid/mail');
     sgMail.setApiKey(
-      `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    `,
+      `test   `,
     ); // Replace with your actual API key
 
     const mailOptions = {
