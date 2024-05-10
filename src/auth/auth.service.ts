@@ -158,8 +158,7 @@ export class AuthService {
   }
 
   private async sendResetEmail(email: string, token: string): Promise<void> {
-    const sgMail = require('@sendgrid/mail');
-     // Replace with your actual API key
+   
 
     const mailOptions = {
       from: 'syntaxsquad02@gmail.com', // Sender address
