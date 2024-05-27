@@ -10,6 +10,8 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { Admin } from 'src/admin/admin.entity';
 import * as nodemailer from 'nodemailer';
 
+import * as sgMail from '@sendgrid/mail';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -37,26 +39,84 @@ export class AuthService {
 
   async createUserInfo(
     username: string,
-    fullName: string,
+    fullname: string,
     email: string,
     role: string,
   ): Promise<any> {
-    const hashedPassword = await bcrypt.hash(username, 10);
-    const employee = this.employeeRepository.create({
-      username: username,
-      fullname: fullName,
-      email: email,
-      role: role,
-      password: hashedPassword,
-    });
-    const user = this.usersRepository.create({
-      username: fullName,
-      password: hashedPassword,
-      role,
-    });
-    await this.employeeRepository.save(employee);
-    await this.usersRepository.save(user);
-    return employee;
+    console.log('Input Parameters:', { username, fullname, email, role });
+
+    if (!username || !fullname || !email || !role) {
+      console.error('Invalid input parameters');
+      throw new HttpException(
+        'Invalid input parameters',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    try {
+      const existingEmployee = await this.employeeRepository.findOne({
+        where: { email },
+      });
+      if (existingEmployee) {
+        console.error('Email already exists:', email);
+        throw new HttpException('Email already exists', HttpStatus.CONFLICT);
+      }
+
+      const existingUser = await this.usersRepository.findOne({
+        where: { username },
+      });
+      if (existingUser) {
+        console.error('Username already exists:', username);
+        throw new HttpException('Username already exists', HttpStatus.CONFLICT);
+      }
+
+      const defaultPassword = Math.random().toString(36).substring(2, 10); // 8 character random password
+      const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+
+      let createdUser: any;
+
+      if (role === 'admin') {
+        const admin = this.adminsRepository.create({
+          username,
+          password: hashedPassword,
+        });
+        await this.adminsRepository.save(admin);
+        const user = this.usersRepository.create({
+          username,
+          password: hashedPassword,
+          role,
+        });
+        await this.usersRepository.save(user);
+        createdUser = admin;
+      } else {
+        const employee = this.employeeRepository.create({
+          username,
+          fullname,
+          email,
+          role,
+          password: hashedPassword,
+        });
+        await this.employeeRepository.save(employee);
+        const user = this.usersRepository.create({
+          username,
+          password: hashedPassword,
+          role,
+        });
+        await this.usersRepository.save(user);
+        createdUser = employee;
+      }
+
+      // Log the default password instead of sending an email
+      console.log(`Default password for ${username} is: ${defaultPassword}`);
+
+      return { createdUser, defaultPassword };
+    } catch (error) {
+      console.error('An error occurred while creating the user info:', error);
+      throw new HttpException(
+        'An error occurred while creating the user info: ' + error.message,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async signUp(
@@ -79,8 +139,8 @@ export class AuthService {
       }
 
       const employee = this.employeeRepository.create({
-        fullname: username,
-        username: fullName,
+        username: username,
+        fullname: fullName,
         email: email,
         password: hashedPassword,
       });
@@ -122,7 +182,7 @@ export class AuthService {
 
   async updateUserInfo(
     username: string,
-    fullName: string,
+    fullname: string,
     email: string,
   ): Promise<any> {
     const employee = await this.employeeRepository.findOne({
@@ -131,7 +191,7 @@ export class AuthService {
     if (!employee) {
       throw new HttpException('Employee not found', HttpStatus.NOT_FOUND);
     }
-    employee.fullname = fullName;
+    employee.fullname = fullname;
     employee.email = email;
     await this.employeeRepository.save(employee);
     return employee;
@@ -158,7 +218,6 @@ export class AuthService {
   }
 
   private async sendResetEmail(email: string, token: string): Promise<void> {
-    const sgMail = require('@sendgrid/mail');
     sgMail.setApiKey(
       `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    `,
     ); // Replace with your actual API key

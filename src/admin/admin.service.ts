@@ -65,14 +65,18 @@ export class AdminService {
     const user = this.userRepository.create({
       username: adminData.username,
       password: hashedPassword,
-      role : 'admin',
+      role: 'admin',
     });
     await this.userRepository.save(user);
     await this.adminRepository.save(admin);
     return admin;
   }
 
-  async update(username: string, fullname : string ,emmail:string): Promise<any> {
+  async update(
+    username: string,
+    fullname: string,
+    emmail: string,
+  ): Promise<any> {
     const admin = await this.adminRepository.findOne({
       where: { username: username },
     });
@@ -84,7 +88,7 @@ export class AdminService {
     this.adminRepository.save(admin);
     return admin;
   }
-  
+
   async saveToken(token: string, role: string): Promise<Token> {
     const newToken = this.tokensRepository.create({ token, role });
     await this.tokensRepository.save(newToken);
@@ -131,14 +135,13 @@ export class AdminService {
     const user = this.userRepository.create({
       username: adminData.username,
       password: hashedPassword,
-      role : 'admin',
+      role: 'admin',
     });
     await this.userRepository.save(user);
     await this.adminRepository.save(admin);
     return admin;
   }
 
-  
   async login(username: string, password: string): Promise<any> {
     // Regex pattern to validate username (name) format
     const nameRegex = /^[a-zA-Z0-9_]{3,15}$/;
@@ -154,7 +157,6 @@ export class AdminService {
     return null;
   }
 
-
   // async getUserInfo(username: string): Promise<any> {
   //   const employee = await this.employeeRepository.findOne({
   //     where: { username },
@@ -168,43 +170,50 @@ export class AdminService {
   //do the same for admin
   async getStatus(username: string): Promise<any> {
     const employee = await this.adminRepository.findOne({
-          where: { username },
-        });
-        if (!employee) {
-          throw new HttpException('Employee not found', HttpStatus.NOT_FOUND);
-        }
-        const { password, ...result } = employee;
-        return result;
+      where: { username },
+    });
+    if (!employee) {
+      throw new HttpException('Employee not found', HttpStatus.NOT_FOUND);
+    }
+    const { password, ...result } = employee;
+    return result;
   }
 
   async getAllUsers(username: string): Promise<any[]> {
     // Check if the username has admin role or other
-    const user = await this.userRepository.findOne({
-      where: { username },
-    });
-  
+    const user = await this.userRepository.findOne({ where: { username } });
+
     if (!user) {
       throw new HttpException('Admin not found', HttpStatus.NOT_FOUND);
     }
-  
+
     if (user.role !== 'admin') {
-      throw new UnauthorizedException('You are not authorized to view this page');
+      throw new UnauthorizedException(
+        'You are not authorized to view this page',
+      );
     }
-  
-    const users = await this.userRepository.find();
-    const addresses = await this.addressRepository.find();
-    const admins = await this.adminRepository.find();
-    const employees = await this.employeeRepository.find();
-  
+
+    // Fetch all users and their related data in parallel
+    const [users, addresses, admins, employees] = await Promise.all([
+      this.userRepository.find(),
+      this.addressRepository.find(),
+      this.adminRepository.find(),
+      this.employeeRepository.find(),
+    ]);
+
     const result = [];
-  
-    for (let i = 0; i < users.length; i++) {
-      const userAddress = addresses.find((address) => address.username === users[i].username);
-      const admin = admins.find((admin) => admin.username === users[i].username);
-      const employee = employees.find((employee) => employee.username === users[i].username);
-  
-      if (admin || employee) {
-        const userData = admin || employee;
+
+    users.forEach((user) => {
+      const userAddress = addresses.find(
+        (address) => address.username === user.username,
+      );
+      const admin = admins.find((admin) => admin.username === user.username);
+      const employee = employees.find(
+        (employee) => employee.username === user.username,
+      );
+
+      const userData = admin || employee;
+      if (userData) {
         const { password, ...userWithoutPassword } = userData;
         const address = {
           street: userAddress ? userAddress.street : '',
@@ -212,20 +221,33 @@ export class AdminService {
           state: userAddress ? userAddress.state : '',
           postalCode: userAddress ? userAddress.postalCode : '',
         };
-  
+
         result.push({
-          username: users[i].username,
-          role: users[i].role,
-          email: userData.email,
-          fullname: userData.fullname,
+          username: user.username,
+          role: user.role,
+          email: userWithoutPassword.email,
+          fullname: userWithoutPassword.fullname,
           addresses: address,
         });
+      } else {
+        result.push({
+          username: user.username,
+          role: user.role,
+          email: '',
+          fullname: '',
+          addresses: {
+            street: '',
+            city: '',
+            state: '',
+            postalCode: '',
+          },
+        });
       }
-    }
-  
+    });
+
     return result;
   }
-  
+
   //get user by username
   async getUser(username: string): Promise<any> {
     // Fetch the user from the database
@@ -233,43 +255,62 @@ export class AdminService {
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
-  
+
     // Fetch additional details based on the user's role
-    const userDetails = await this.employeeRepository.findOne({ where: { username } }) || await this.adminRepository.findOne({ where: { username } });
+    const userDetails =
+      (await this.employeeRepository.findOne({ where: { username } })) ||
+      (await this.adminRepository.findOne({ where: { username } }));
     if (!userDetails) {
       throw new HttpException('User details not found', HttpStatus.NOT_FOUND);
     }
-  
+
     // Fetch the user's address details
-    const address = await this.addressRepository.findOne({ where: { username } });
+    const address = await this.addressRepository.findOne({
+      where: { username },
+    });
     if (!address) {
       throw new HttpException('Address not found', HttpStatus.NOT_FOUND);
     }
-  
+
     return { user, userDetails, address };
   }
 
-  async updateUser(username: string, role: string, email: string, fullName: string, addresses: { street: string, city: string, state: string, postalCode: string }): Promise<any> {
+  async updateUser(
+    username: string,
+    role: string,
+    email: string,
+    fullName: string,
+    addresses: {
+      street: string;
+      city: string;
+      state: string;
+      postalCode: string;
+    },
+  ): Promise<any> {
     // Fetch the user from the database
     const user = await this.userRepository.findOne({ where: { username } });
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
-  
+
     // Update basic user properties
     user.role = role;
     await this.userRepository.save(user);
-  
+
     // Assuming 'Employee' and 'Admin' are updated similarly
-    const userDetails = await this.employeeRepository.findOne({ where: { username } }) || await this.adminRepository.findOne({ where: { username } });
+    const userDetails =
+      (await this.employeeRepository.findOne({ where: { username } })) ||
+      (await this.adminRepository.findOne({ where: { username } }));
     if (userDetails) {
       userDetails.fullname = fullName;
       userDetails.email = email;
       await this.employeeRepository.save(userDetails);
     }
-  
+
     // Update or insert address details
-    const address = await this.addressRepository.findOne({ where: { username } });
+    const address = await this.addressRepository.findOne({
+      where: { username },
+    });
     if (address) {
       address.street = addresses.street;
       address.city = addresses.city;
@@ -279,10 +320,9 @@ export class AdminService {
     } else {
       await this.addressRepository.insert({ username, ...addresses });
     }
-  
+
     return { user, userDetails, addresses };
   }
-  
 
   async deleteUser(username: string): Promise<void> {
     // Retrieve the user by username
@@ -290,7 +330,7 @@ export class AdminService {
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
-  
+
     // Depending on the user's role, delete the user from corresponding tables
     if (user.role === 'admin') {
       // Assuming admin might have specific additional records
@@ -300,21 +340,23 @@ export class AdminService {
       }
     } else if (user.role === 'employee') {
       // Similar for employee
-      const employee = await this.employeeRepository.findOne({ where: { username } });
+      const employee = await this.employeeRepository.findOne({
+        where: { username },
+      });
       if (employee) {
         await this.employeeRepository.remove(employee);
       }
     }
-  
+
     // Delete user addresses if applicable
-    const addresses = await this.addressRepository.find({ where: { username } });
+    const addresses = await this.addressRepository.find({
+      where: { username },
+    });
     addresses.forEach(async (address) => {
       await this.addressRepository.remove(address);
     });
-  
+
     // Finally, delete the user record
     await this.userRepository.remove(user);
   }
-  
-  
 }

@@ -96,29 +96,31 @@ export class AdminController {
 
   @Get('allUsers')
   @UseGuards(JwtAuthGuard)
-  async getAllUsers(@Req() req: Express.Request & { user: { username: string } }): Promise<any> {
-    return this.adminService.getAllUsers(req.user.username);
+  async getAllUsers(@Req() req) {
+    const username = req.user.username; // Assurez-vous que req.user contient le username de l'utilisateur connecté
+    return this.adminService.getAllUsers(username);
   }
 
   //get user by username
-  @Get('getUser/:username')
+  @Get(':username')
   @UseGuards(JwtAuthGuard)
-  async getUser( @Param('username') username: string): Promise<any> {
+  async getUser(@Param('username') username: string): Promise<any> {
     return this.adminService.getUser(username);
   }
+  
   @Post('createuser')
   @UseGuards(JwtAuthGuard)
   async createuser(@Req() req: Express.Request & { user: { username: string } }, @Body() userdto: UpdateDTO) {
     return await this.authservice.createUserInfo(userdto.username, userdto.fullname, userdto.email, userdto.role );
   }
 
-  @Delete('deleteuser/:id')
+  @Delete('deleteUser/:id')
   @UseGuards(JwtAuthGuard)
   async deleteuser( @Param('id') username: string) {
     return await this.adminService.deleteUser(username);
   }
 
-  @Post('updateuser/:username')
+  @Post('updateUser/:username')
   @UseGuards(JwtAuthGuard)
   async updateUser(@Req() req: Express.Request & { user: { username: string } }, @Body() userDto: UpdateDTO , @Param('username') username: string ){
     return await this.adminService.updateUser(username, userDto.role, userDto.email,userDto.fullname , userDto.addresses );
