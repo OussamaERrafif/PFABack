@@ -56,7 +56,7 @@ export class AuthService {
       password: hashedPassword,
       role,
     });
-    this.logsService.createLog(username, 'Create', 'User created', 'Success');
+    this.logsService.createLog(username, 'Create', 'User created', 'success');
     await this.employeeRepository.save(employee);
     await this.usersRepository.save(user);
     return employee;
@@ -92,7 +92,7 @@ export class AuthService {
         password: hashedPassword,
         role,
       });
-      this.logsService.createLog(username, 'Create', 'User created', 'Success');
+      this.logsService.createLog(username, 'Create', 'User created', 'success');
       await this.employeeRepository.save(employee);
       await this.usersRepository.save(user);
       return user;
@@ -137,7 +137,7 @@ export class AuthService {
     }
     employee.fullname = fullName;
     employee.email = email;
-    this.logsService.createLog(username, 'Update', 'User updated', 'Success');
+    this.logsService.createLog(username, 'Update', 'User updated', 'success');
     await this.employeeRepository.save(employee);
     return employee;
   }
@@ -208,11 +208,11 @@ export class AuthService {
 
     user.password = newPassword; // Ensure password hashing is handled
     if (user instanceof Admin) {
-      this.logsService.createLog(user.username, 'Update', 'Password updated', 'Success');
+      this.logsService.createLog(user.username, 'Update', 'Password updated', 'success');
       await this.adminsRepository.save(user);
     } else {
       
-      this.logsService.createLog(user.username, 'Update', 'Password updated', 'Success');
+      this.logsService.createLog(user.username, 'Update', 'Password updated', 'success');
       await this.employeeRepository.save(user);
     }
   }
