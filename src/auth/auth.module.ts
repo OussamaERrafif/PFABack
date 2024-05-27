@@ -14,6 +14,8 @@ import { Token } from 'src/user/token.entity';
 import { TokenModule } from 'src/user/token.module';
 import { AdminModule } from 'src/admin/admin.module';
 import { Admin } from 'src/admin/admin.entity';
+import { Logs } from 'src/journal/entity/logs.entity';
+import { LogsService } from 'src/journal/logs.service';
 
 @Module({
   imports: [
@@ -21,10 +23,10 @@ import { Admin } from 'src/admin/admin.entity';
     JwtModule.register({
       secret: 'secret',
       signOptions: { expiresIn: '1h' }
-    }),TypeOrmModule.forFeature([User,Employee,Token,Admin]), 
+    }),TypeOrmModule.forFeature([User,Employee,Token,Admin,Logs]), 
     UserModule,EmployeeModule,TokenModule,AdminModule
   ],
   controllers: [AuthController],
-  providers: [AuthService,LocalStrategy,JwtStrategy]
+  providers: [AuthService,LocalStrategy,JwtStrategy,LogsService]
 })
 export class AuthModule {}

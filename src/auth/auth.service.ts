@@ -9,6 +9,7 @@ import { Employee } from 'src/user/employee/employee.entity';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { Admin } from 'src/admin/admin.entity';
 import * as nodemailer from 'nodemailer';
+import { LogsService } from 'src/journal/logs.service';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +23,7 @@ export class AuthService {
     @InjectRepository(Admin)
     private adminsRepository: Repository<Admin>,
     public jwtService: JwtService,
+    public logsService : LogsService,
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
@@ -54,6 +56,7 @@ export class AuthService {
       password: hashedPassword,
       role,
     });
+    this.logsService.createLog(username, 'Create', 'User created', 'Success');
     await this.employeeRepository.save(employee);
     await this.usersRepository.save(user);
     return employee;
@@ -89,6 +92,7 @@ export class AuthService {
         password: hashedPassword,
         role,
       });
+      this.logsService.createLog(username, 'Create', 'User created', 'Success');
       await this.employeeRepository.save(employee);
       await this.usersRepository.save(user);
       return user;
@@ -133,6 +137,7 @@ export class AuthService {
     }
     employee.fullname = fullName;
     employee.email = email;
+    this.logsService.createLog(username, 'Update', 'User updated', 'Success');
     await this.employeeRepository.save(employee);
     return employee;
   }
@@ -203,8 +208,11 @@ export class AuthService {
 
     user.password = newPassword; // Ensure password hashing is handled
     if (user instanceof Admin) {
+      this.logsService.createLog(user.username, 'Update', 'Password updated', 'Success');
       await this.adminsRepository.save(user);
     } else {
+      
+      this.logsService.createLog(user.username, 'Update', 'Password updated', 'Success');
       await this.employeeRepository.save(user);
     }
   }

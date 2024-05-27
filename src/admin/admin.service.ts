@@ -17,6 +17,7 @@ import { User } from 'src/user/user.entity';
 import e from 'express';
 import { Address } from 'src/Adresses/Entity/adress.entity';
 import { Employee } from 'src/user/employee/employee.entity';
+import { LogsService } from 'src/journal/logs.service';
 
 @Injectable()
 export class AdminService {
@@ -32,6 +33,7 @@ export class AdminService {
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
     public jwtService: JwtService,
+    private logsService : LogsService,
   ) {}
 
   async findAll(): Promise<Admin[]> {
@@ -67,6 +69,7 @@ export class AdminService {
       password: hashedPassword,
       role : 'admin',
     });
+    this.logsService.createLog(adminData.username, 'Create', 'Admin created', 'Success');
     await this.userRepository.save(user);
     await this.adminRepository.save(admin);
     return admin;
@@ -82,6 +85,7 @@ export class AdminService {
     admin.fullname = fullname;
     admin.email = emmail;
     this.adminRepository.save(admin);
+    this.logsService.createLog(username, 'Update', 'Admin updated', 'Success');
     return admin;
   }
   
@@ -98,6 +102,7 @@ export class AdminService {
     if (!admin) {
       throw new NotFoundException(`Admin with ID ${id} not found`);
     }
+    this.logsService.createLog(admin.username, 'Delete', 'Admin deleted', 'Success');
     await this.adminRepository.remove(admin);
   }
 
@@ -133,6 +138,7 @@ export class AdminService {
       password: hashedPassword,
       role : 'admin',
     });
+    this.logsService.createLog(adminData.username, 'Create', 'Admin created', 'Success');
     await this.userRepository.save(user);
     await this.adminRepository.save(admin);
     return admin;
@@ -149,6 +155,7 @@ export class AdminService {
     const admin = await this.adminRepository.findOne({ where: { username } });
     if (admin && (await bcrypt.compare(password, admin.password))) {
       const { password, ...result } = admin;
+      this.logsService.createLog(username, 'Login', 'Admin logged in', 'Success');
       return result;
     }
     return null;
@@ -174,6 +181,7 @@ export class AdminService {
           throw new HttpException('Employee not found', HttpStatus.NOT_FOUND);
         }
         const { password, ...result } = employee;
+        this.logsService.createLog(username, 'Get', 'Admin status', 'Success');
         return result;
   }
 
@@ -279,6 +287,7 @@ export class AdminService {
     } else {
       await this.addressRepository.insert({ username, ...addresses });
     }
+    this.logsService.createLog(username, 'Update', 'User updated', 'Success');
   
     return { user, userDetails, addresses };
   }
@@ -311,7 +320,7 @@ export class AdminService {
     addresses.forEach(async (address) => {
       await this.addressRepository.remove(address);
     });
-  
+    this.logsService.createLog(username, 'Delete', 'User deleted', 'Success');
     // Finally, delete the user record
     await this.userRepository.remove(user);
   }

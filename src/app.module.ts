@@ -1,8 +1,6 @@
+import { LogsModule } from './journal/logs.module';
 import { AdresseModule } from './Adresses/adresse.module';
-import { AdresseService } from './Adresses/adresse.service';
-import { AdresseController } from './Adresses/adresse.controller';
 import { TokenModule } from './user/token.module';
-// Importing necessary modules and components from NestJS
 import { UserModule } from './user/user.module';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
@@ -12,13 +10,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DbConnectionService } from './app.DbConnectionService';
 import { ProductModule } from './products/product.module';
 import { AdminModule } from './admin/admin.module';
-import { CorsConfig } from './cors.middleware';
-import { Address } from './Adresses/Entity/adress.entity';
 
 @Module({
   // Declaring the AppModule class
   imports: [
-    
+    LogsModule,
     TokenModule,
     // Importing the UserModule to use its functionality
     ProductModule,
