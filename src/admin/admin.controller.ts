@@ -102,8 +102,8 @@ export class AdminController {
 
   //get user by username
   @Get('getUser/:username')
-  @UseGuards(JwtAuthGuard)
   async getUser( @Param('username') username: string): Promise<any> {
+    console.log('Inside getUser method');
     return this.adminService.getUser(username);
   }
   @Post('createuser')
@@ -113,13 +113,11 @@ export class AdminController {
   }
 
   @Delete('deleteuser/:id')
-  @UseGuards(JwtAuthGuard)
   async deleteuser( @Param('id') username: string) {
     return await this.adminService.deleteUser(username);
   }
 
   @Post('updateuser/:username')
-  @UseGuards(JwtAuthGuard)
   async updateUser(@Req() req: Express.Request & { user: { username: string } }, @Body() userDto: UpdateDTO , @Param('username') username: string ){
     return await this.adminService.updateUser(username, userDto.role, userDto.email,userDto.fullname , userDto.addresses );
   }

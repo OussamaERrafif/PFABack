@@ -249,15 +249,15 @@ export class AdminService {
     }
   
     // Fetch the user's address details
-    const address = await this.addressRepository.findOne({ where: { username } });
+    let address = await this.addressRepository.findOne({ where: { username } });
     if (!address) {
-      throw new HttpException('Address not found', HttpStatus.NOT_FOUND);
+      address = {username: username, street: '', city: '', state: '', postalCode: '' };
     }
   
     return { user, userDetails, address };
   }
 
-  async updateUser(username: string, role: string, email: string, fullName: string, addresses: { street: string, city: string, state: string, postalCode: string }): Promise<any> {
+  async updateUser(username: string, role: string, email: string, fullName: string, addresses: {  city: string, state: string, postalCode: string }): Promise<any> {
     // Fetch the user from the database
     const user = await this.userRepository.findOne({ where: { username } });
     if (!user) {
@@ -279,10 +279,9 @@ export class AdminService {
     // Update or insert address details
     const address = await this.addressRepository.findOne({ where: { username } });
     if (address) {
-      address.street = addresses.street;
-      address.city = addresses.city;
-      address.state = addresses.state;
-      address.postalCode = addresses.postalCode;
+      address.city = addresses.city || '';
+      address.state = addresses.state || '';
+      address.postalCode = addresses.postalCode  || '';
       await this.addressRepository.save(address);
     } else {
       await this.addressRepository.insert({ username, ...addresses });
@@ -306,12 +305,16 @@ export class AdminService {
       const admin = await this.adminRepository.findOne({ where: { username } });
       if (admin) {
         await this.adminRepository.remove(admin);
+      }else{
+        throw new HttpException('Admin not found', HttpStatus.NOT_FOUND);
       }
     } else if (user.role === 'employee') {
       // Similar for employee
       const employee = await this.employeeRepository.findOne({ where: { username } });
       if (employee) {
         await this.employeeRepository.remove(employee);
+      }else{
+        throw new HttpException('Employee not found', HttpStatus.NOT_FOUND);
       }
     }
   
