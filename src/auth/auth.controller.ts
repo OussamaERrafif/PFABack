@@ -83,7 +83,7 @@ export class AuthController {
   async resetPassword(@Body() body: { token: string; newPassword: string }): Promise<any> {
     try {
       await this.authservice.resetPassword(body.token, body.newPassword);
-      return { message: 'Password has been successfully reset.' };
+      return { message: 'Password has been successfully reset.'  };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }

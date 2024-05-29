@@ -7,7 +7,7 @@ import { BillingDTO } from './DTO/billing.dto';
 import { Billing } from './Entity/billing.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Await } from 'react-router-dom';
+import { User } from 'src/user/user.entity';
 
 @Injectable()
 export class BillingService {
@@ -17,21 +17,10 @@ export class BillingService {
     private billingRepository: Repository<Billing>,
   ) {}
 
-  //   async create(req: Express.Request, adressepayload: AddressDTO) {
-  //     const newAddress = this.addressRepository.create({
-  //       username: (req.user as User).username,
-  //       street: adressepayload.street,
-  //       city: adressepayload.city,
-  //       state: adressepayload.state,
-  //       postalCode: adressepayload.postalCode,
-  //     });
-
-  //     await this.addressRepository.save(newAddress);
-  //   }
   //create a new billing
-  createBilling(billing: BillingDTO): Promise<Billing> {
+  createBilling(req: Express.Request, billing: BillingDTO): Promise<Billing> {
     const newBilling = this.billingRepository.create({
-      username: billing.username,
+      username: (req.user as User).username,
       CardNumber: billing.cardNumber,
       CardHolder: billing.cardHolder,
       ExpirationDate: billing.expirationDate,
@@ -41,30 +30,35 @@ export class BillingService {
   }
 
   //update a billing
-async updateBilling(username: string, billing: BillingDTO): Promise<Billing> {
+  async updateBilling(
+    req: Express.Request,
+    billing: BillingDTO,
+  ): Promise<Billing> {
     try {
-        const existingBilling = await this.billingRepository.findOne({ where: { username } });
-        if (!existingBilling) {
-            const newBilling = this.billingRepository.create({
-                username: billing.username,
-                CardNumber: billing.cardNumber,
-                CardHolder: billing.cardHolder,
-                ExpirationDate: billing.expirationDate,
-                CVC: billing.cvc,
-            });
-            return this.billingRepository.save(newBilling);
-        } else {
-            existingBilling.CardNumber = billing.cardNumber;
-            existingBilling.CardHolder = billing.cardHolder;
-            existingBilling.ExpirationDate = billing.expirationDate;
-            existingBilling.CVC = billing.cvc;
+      const existingBilling = await this.billingRepository.findOne({
+        where: { username: (req.user as User).username },
+      });
+      if (!existingBilling) {
+        const newBilling = this.billingRepository.create({
+          username: (req.user as User).username,
+          CardNumber: billing.cardNumber,
+          CardHolder: billing.cardHolder,
+          ExpirationDate: billing.expirationDate,
+          CVC: billing.cvc,
+        });
+        return this.billingRepository.save(newBilling);
+      } else {
+        existingBilling.CardNumber = billing.cardNumber;
+        existingBilling.CardHolder = billing.cardHolder;
+        existingBilling.ExpirationDate = billing.expirationDate;
+        existingBilling.CVC = billing.cvc;
 
-            return this.billingRepository.save(existingBilling);
-        }
+        return this.billingRepository.save(existingBilling);
+      }
     } catch (error) {
-        return error;
+      return error;
     }
-}
+  }
 
   //get all billings
   getBillings(): Promise<Billing[]> {
@@ -77,7 +71,9 @@ async updateBilling(username: string, billing: BillingDTO): Promise<Billing> {
   }
 
   //get a billing by username
-  getBilling(username: string): Promise<Billing[]> {
-    return this.billingRepository.find({ where: { username } });
+  getBilling(req: Express.Request): Promise<Billing[]> {
+    return this.billingRepository.find({
+      where: { username: (req.user as User).username },
+    });
   }
 }
