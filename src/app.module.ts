@@ -1,3 +1,5 @@
+import { BillingModule } from './Bilings/billing.module';
+import { BillingController } from './Bilings/billing.controller';
 import { LogsModule } from './journal/logs.module';
 import { AdresseModule } from './Adresses/adresse.module';
 import { TokenModule } from './user/token.module';
@@ -14,6 +16,7 @@ import { AdminModule } from './admin/admin.module';
 @Module({
   // Declaring the AppModule class
   imports: [
+    BillingModule,
     LogsModule,
     TokenModule,
     // Importing the UserModule to use its functionality
@@ -48,7 +51,7 @@ import { AdminModule } from './admin/admin.module';
     AdminModule,
   ],
   // Declaring controllers used in this module
-  controllers: [AppController],
+  controllers: [BillingController, AppController],
   // Declaring providers used in this module
   providers: [AppService, DbConnectionService],
 })

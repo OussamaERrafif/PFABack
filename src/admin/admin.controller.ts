@@ -88,6 +88,7 @@ export class AdminController {
     return this.adminService.getStatus(req.user.username);
   }
 
+  
   @Post('update')
   @UseGuards(JwtAuthGuard)
   async update(@Req() req: Express.Request & { user: { username: string } }, @Body() admindto: Admindtopayload): Promise<Admin> {

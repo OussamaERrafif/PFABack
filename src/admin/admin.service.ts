@@ -181,7 +181,7 @@ export class AdminService {
           throw new HttpException('Employee not found', HttpStatus.NOT_FOUND);
         }
         const { password, ...result } = employee;
-        this.logsService.createLog(username, 'Get', 'Admin status', 'Success');
+        this.logsService.createLog(username, 'Get', 'Admin status', 'success');
         return result;
   }
 

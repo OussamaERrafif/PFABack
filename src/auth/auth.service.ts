@@ -121,8 +121,10 @@ export class AuthService {
       throw new HttpException('Employee not found', HttpStatus.NOT_FOUND);
     }
     const { password, ...result } = employee;
+    this.logsService.createLog(username, 'Get', 'employee status', 'success');
     return result;
   }
+
 
   async updateUserInfo(
     username: string,
