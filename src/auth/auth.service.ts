@@ -26,6 +26,8 @@ export class AuthService {
     public logsService: LogsService,
   ) {}
 
+  mailtoken: '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';
+
   async validateUser(username: string, password: string): Promise<any> {
     const user = await this.usersRepository.findOne({
       where: { username },
@@ -70,7 +72,7 @@ export class AuthService {
         throw new HttpException('Username already exists', HttpStatus.CONFLICT);
       }
 
-      const defaultPassword = Math.random().toString(36).substring(2, 10); // 8 character random password
+      const defaultPassword = Math.random().toString(36).substring(2, 10);
       const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
       let createdUser: any;
@@ -112,7 +114,7 @@ export class AuthService {
       console.log(`Default password for ${username} is: ${defaultPassword}`);
 
       // Send an email to the user
-      this.sendEmail(email, username);
+      this.sendEmail(email, username, defaultPassword);
       return { createdUser, defaultPassword };
     } catch (error) {
       console.error('An error occurred while creating the user info:', error);
@@ -227,7 +229,7 @@ export class AuthService {
   private async sendResetEmail(email: string, token: string): Promise<void> {
     const sgMail = require('@sendgrid/mail');
     sgMail.setApiKey(
-      `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`,
+      `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`,
     ); // Replace with your actual API key
 
     const mailOptions = {
@@ -258,10 +260,14 @@ export class AuthService {
   }
 
   //send email to user
-  async sendEmail(email: string, username: string): Promise<void> {
+  async sendEmail(
+    email: string,
+    username: string,
+    defaultPassword: string,
+  ): Promise<void> {
     const sgMail = require('@sendgrid/mail');
     sgMail.setApiKey(
-      `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`,
+      `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`,
     ); // Replace with your actual API key
 
     const mailOptions = {
@@ -275,6 +281,7 @@ export class AuthService {
         <h1 style="color: #333333; text-align: center;">Welcome to the team</h1>
         <p style="font-size: 16px; color: #555555;">Dear ${username},</p>
         <p style="font-size: 16px; color: #555555;">Thank you for joining our team. We are excited to have you on board.</p>
+        <p style="font-size: 16px; color: #555555;">Your default password is <b style="font-size: 20px; color: #555555;"> ${defaultPassword}</b> do not share it to anyone</p>
         <p style="font-size: 16px; color: #555555;">If you want to reset your password, click on the link below:</p>
         <p style="text-align: center;">
             <a href="http://localhost:5173/forgotpassword" style="display: inline-block; background-color: #007bff; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Reset Password</a>
@@ -319,13 +326,16 @@ export class AuthService {
 
     user.password = hashedPassword;
 
-    const userInUserRepo = await this.usersRepository.findOne({
-      where: { username: user.fullname },
+    let userInUserRepo = await this.usersRepository.findOne({
+      where: { username: user.username },
     });
-    await this.usersRepository.save({
-      ...userInUserRepo,
-      password: hashedPassword,
-    });
+
+    if (userInUserRepo) {
+      // Update the user password in the user repository
+      userInUserRepo.password = hashedPassword;
+      // Save the updated user entity back to the repository
+      await this.usersRepository.save(userInUserRepo);
+    }
 
     if (user instanceof Admin) {
       this.logsService.createLog(
