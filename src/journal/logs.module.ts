@@ -13,9 +13,4 @@ import { Module } from '@nestjs/common';
   controllers: [LogsController],
   providers: [LogsService],
 })
-export class LogsModule {
-
-  
-
-
-}
+export class LogsModule {}

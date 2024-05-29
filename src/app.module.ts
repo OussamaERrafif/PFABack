@@ -51,9 +51,9 @@ import { AdminModule } from './admin/admin.module';
     AdminModule,
   ],
   // Declaring controllers used in this module
-  controllers: [BillingController, AppController],
+  controllers: [AppController],
   // Declaring providers used in this module
-  providers: [AppService, DbConnectionService],
+  providers: [AppService, DbConnectionService ],
 })
 // Exporting the AppModule class
 export class AppModule {}
