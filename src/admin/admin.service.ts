@@ -102,7 +102,7 @@ export class AdminService {
     if (!admin) {
       throw new NotFoundException(`Admin with ID ${id} not found`);
     }
-    this.logsService.createLog(admin.username, 'Delete', 'Admin deleted', 'Success');
+    this.logsService.createLog(admin.username, 'Delete', 'Admin deleted', 'success');
     await this.adminRepository.remove(admin);
   }
 
