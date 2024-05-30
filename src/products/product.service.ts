@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
@@ -28,6 +28,7 @@ export class ProductService {
   }
 
   async createProduct(createProductDto: CreateProductDto): Promise<Product> {
+    this.validateProductInput(createProductDto.quantity, createProductDto.price);
     const product = this.productRepository.create(createProductDto);
     
     this.logsservice.createLog('user', 'create', 'create product', 'success')
@@ -38,6 +39,7 @@ export class ProductService {
     id: number,
     updateProductDto: UpdateProductDto,
   ): Promise<Product> {
+    this.validateProductInput(updateProductDto.quantity, updateProductDto.price);
     const product = await this.productRepository.findOne({ where: { id: id } });
     if (!product) {
       this.logsservice.createLog('user', 'update', 'update product', 'failed')
@@ -53,4 +55,11 @@ export class ProductService {
     this.logsservice.createLog('user', 'delete', 'delete product', 'success')
     await this.productRepository.remove(product);
   }
+  private validateProductInput(quantity: number, price: number): void {
+    if (quantity < 0) {
+        throw new BadRequestException('Quantity must be greater than or equal to 0');
+    }
+    if (price < 0) {
+        throw new BadRequestException('Price must be greater than or equal to 0');
+    }}
 }
